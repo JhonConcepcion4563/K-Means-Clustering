@@ -1,0 +1,39 @@
+library(factoextra)
+library(NbClust)
+library(ggsci)
+
+setwd("Insert you working directory here")
+
+# Read the data
+data <- read.table("FileName.csv", header = TRUE, sep = ",")
+
+# Prepare the data for clustering
+Cluster <- data
+Cluster2 <- Cluster
+Cluster2$EntryNames <- NULL
+
+# Scale the data
+Cluster2 <- scale(Cluster2)
+
+# Determine the optimal number of clusters using the silhouette method
+fviz_nbclust(Cluster2, kmeans, method = "silhouette") + 
+  labs(subtitle = "Silhouette method")
+
+fviz_nbclust(Cluster2, kmeans, nstart = 25,  method = "gap_stat", nboot = 500)+
+  labs(subtitle = "Gap statistic method")
+
+# Perform k-means clustering
+Cluster.Result <- kmeans(Cluster2, centers = 3, nstart = 100)
+
+# View the size of each cluster
+print(Cluster.Result$size)
+
+# Visualize the clusters
+fviz_cluster(Cluster.Result, data = Cluster2, geom = "point", ellipse.type = "norm", 
+             palette = "npg", ggtheme = theme_minimal(), main = "K-means Clustering")
+
+# Create a table of Genotype and their corresponding clusters
+K.Means.Clustering <- table(Cluster$EntryNames, Cluster.Result$cluster)
+
+# Write the clustering results to a CSV file
+write.csv(K.Means.Clustering, file = "./OutputFile.csv")
